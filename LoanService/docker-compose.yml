@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+
+  # ── Base de datos PostgreSQL ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: loan_db
+    environment:
+      POSTGRES_DB:       loanservicedb
+      POSTGRES_USER:     loanuser
+      POSTGRES_PASSWORD: loanpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loanuser -d loanservicedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Broker de eventos RabbitMQ ────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: loan_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Panel de administración
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Microservicio LoanService ─────────────────────────────────────────────────
+  loanservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loan_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS:        http://+:8080
+      RabbitMQ__Host:         rabbitmq
+      RabbitMQ__Username:     guest
+      RabbitMQ__Password:     guest
+      # Para usar PostgreSQL en lugar de InMemory, agregar:
+      # ConnectionStrings__DefaultConnection: "Host=postgres;Database=loanservicedb;Username=loanuser;Password=loanpass"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres_data:

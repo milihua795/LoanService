@@ -1,0 +1,18 @@
+﻿## Ignorar archivos de Visual Studio
+.vs/
+bin/
+obj/
+Debug/
+Release/
+*.user
+*.suo
+*.cache
+*.log
+
+## Ignorar carpetas de dependencias
+packages/
+node_modules/
+
+## Ignorar archivos de configuración local
+appsettings.Development.json
+secrets.json
