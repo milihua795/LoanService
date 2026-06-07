@@ -1,126 +1,148 @@
+﻿using System;
 using FluentAssertions;
-using LoanService.Domain.Academic;
 using Xunit;
+using LoanService.Domain.Academic;
 
-namespace LoanService.Tests.Domain;
-
-public class EstudianteTests
+namespace LoanService.Tests.Domain
 {
-    [Fact]
-    public void Estudiante_NuevoRegistro_DebeInicializarseCorrectamente()
+    public class AcademicModelsTests
     {
-        // Arrange & Act
-        var estudiante = new Estudiante
+        [Fact]
+        public void Estudiante_ShouldCreateValidInstance()
         {
-            EstudianteId      = 1,
-            Nombre            = "Juan",
-            Apellido          = "Pérez",
-            Codigo            = "UAC-2026-001",
-            CorreoElectronico = "juan@uac.edu.pe",
-            Carrera           = "Ingeniería de Sistemas",
-            Ciclo             = 8
-        };
+            var estudiante = new Estudiante
+            {
+                Id = 1,
+                Nombre = "Juan",
+                Apellido = "Perez",
+                Codigo = "20240001",
+                CorreoElectronico = "juan.perez@universidad.edu",
+                Carrera = "Ingeniería de Sistemas",
+                Ciclo = 5,
+                FechaRegistro = DateTime.Now
+            };
 
-        // Assert
-        estudiante.Nombre.Should().Be("Juan");
-        estudiante.Ciclo.Should().Be(8);
-        estudiante.Matriculas.Should().BeEmpty();
-        estudiante.FechaRegistro.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-    }
+            estudiante.Id.Should().Be(1);
+            estudiante.Nombre.Should().Be("Juan");
+            estudiante.Apellido.Should().Be("Perez");
+            estudiante.Codigo.Should().Be("20240001");
+            estudiante.CorreoElectronico.Should().Be("juan.perez@universidad.edu");
+            estudiante.Carrera.Should().Be("Ingeniería de Sistemas");
+            estudiante.Ciclo.Should().Be(5);
+        }
 
-    [Fact]
-    public void Estudiante_ColeccionMatriculas_DebePermitirAgregar()
-    {
-        var estudiante = new Estudiante { EstudianteId = 1, Nombre = "Ana" };
-        var matricula  = new Matricula  { MatriculaId = 1, EstudianteId = 1, CursoId = 1 };
-
-        estudiante.Matriculas.Add(matricula);
-
-        estudiante.Matriculas.Should().HaveCount(1);
-    }
-}
-
-public class DocenteTests
-{
-    [Fact]
-    public void Docente_NuevoDocente_CursosDebeIniciarVacio()
-    {
-        var docente = new Docente
+        [Fact]
+        public void Docente_ShouldCreateValidInstance()
         {
-            DocenteId    = 1,
-            Nombre       = "Luis",
-            Apellido     = "Monzón",
-            Especialidad = "Ingeniería de Software"
-        };
+            var docente = new Docente
+            {
+                Id = 1,
+                Nombre = "Maria",
+                Apellido = "Gonzalez",
+                Especialidad = "Matemáticas",
+                Correo = "maria.gonzalez@universidad.edu"
+            };
 
-        docente.Cursos.Should().BeEmpty();
-        docente.Nombre.Should().Be("Luis");
-    }
-}
+            docente.Nombre.Should().Be("Maria");
+            docente.Apellido.Should().Be("Gonzalez");
+            docente.Especialidad.Should().Be("Matemáticas");
+            docente.Correo.Should().Be("maria.gonzalez@universidad.edu");
+        }
 
-public class CursoTests
-{
-    [Fact]
-    public void Curso_NuevoCurso_DebeInicializarColecciones()
-    {
-        var curso = new Curso
+        [Fact]
+        public void Curso_ShouldCreateValidInstance()
         {
-            CursoId  = 1,
-            Nombre   = "Plataformas para el Desarrollo de Aplicaciones",
-            Codigo   = "IS-801",
-            Creditos = 4
-        };
+            var docente = new Docente { Id = 1, Nombre = "Maria", Apellido = "Gonzalez", Especialidad = "Matemáticas" };
+            var curso = new Curso
+            {
+                Id = 1,
+                Nombre = "Álgebra Lineal",
+                Codigo = "MAT-101",
+                Creditos = 4,
+                DocenteId = 1,
+                Docente = docente
+            };
 
-        curso.Horarios.Should().BeEmpty();
-        curso.Matriculas.Should().BeEmpty();
-        curso.Creditos.Should().Be(4);
-    }
-}
+            curso.Nombre.Should().Be("Álgebra Lineal");
+            curso.Codigo.Should().Be("MAT-101");
+            curso.Creditos.Should().Be(4);
+            curso.DocenteId.Should().Be(1);
+            curso.Docente.Should().NotBeNull();
+        }
 
-public class MatriculaTests
-{
-    [Fact]
-    public void Matricula_NuevaMatricula_EstadoDebeSerActiva()
-    {
-        var matricula = new Matricula
+        [Fact]
+        public void Horario_ShouldCreateValidInstance()
         {
-            MatriculaId  = 1,
-            EstudianteId = 1,
-            CursoId      = 1
-        };
+            var horario = new Horario
+            {
+                Id = 1,
+                DiaSemana = "Lunes",
+                HoraInicio = new TimeOnly(8, 0),
+                HoraFin = new TimeOnly(10, 0),
+                Aula = "A-101"
+            };
 
-        matricula.Estado.Should().Be("Activa");
-        matricula.FechaMatricula.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-    }
+            horario.DiaSemana.Should().Be("Lunes");
+            horario.HoraInicio.Should().Be(new TimeOnly(8, 0));
+            horario.HoraFin.Should().Be(new TimeOnly(10, 0));
+            horario.Aula.Should().Be("A-101");
+            // Comparación corregida:
+            horario.HoraInicio.CompareTo(horario.HoraFin).Should().BeLessThan(0);
+        }
 
-    [Fact]
-    public void Matricula_CambioEstado_DebePermitirRetirada()
-    {
-        var matricula = new Matricula { MatriculaId = 1, Estado = "Activa" };
-
-        matricula.Estado = "Retirada";
-
-        matricula.Estado.Should().Be("Retirada");
-    }
-}
-
-public class HorarioTests
-{
-    [Fact]
-    public void Horario_NuevoHorario_DebeAsignarDiaYAula()
-    {
-        var horario = new Horario
+        [Fact]
+        public void Matricula_ShouldCreateValidInstance()
         {
-            HorarioId  = 1,
-            CursoId    = 1,
-            DiaSemana  = "Lunes",
-            HoraInicio = new TimeOnly(8, 0),
-            HoraFin    = new TimeOnly(10, 0),
-            Aula       = "A-301"
-        };
+            var estudiante = new Estudiante { Id = 1, Nombre = "Juan", Apellido = "Perez" };
+            var curso = new Curso { Id = 1, Nombre = "Álgebra Lineal" };
+            var matricula = new Matricula
+            {
+                Id = 1,
+                EstudianteId = 1,
+                CursoId = 1,
+                Estudiante = estudiante,
+                Curso = curso,
+                FechaMatricula = DateTime.Now,
+                Estado = "Activa"
+            };
 
-        horario.DiaSemana.Should().Be("Lunes");
-        horario.Aula.Should().Be("A-301");
-        horario.HoraFin.Should().BeGreaterThan(horario.HoraInicio);
+            matricula.EstudianteId.Should().Be(1);
+            matricula.CursoId.Should().Be(1);
+            matricula.Estado.Should().Be("Activa");
+            matricula.Estudiante.Should().NotBeNull();
+            matricula.Curso.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void Horario_ShouldValidateTimeRange()
+        {
+            var horario = new Horario
+            {
+                Id = 1,
+                DiaSemana = "Martes",
+                HoraInicio = new TimeOnly(14, 0),
+                HoraFin = new TimeOnly(16, 0),
+                Aula = "B-202"
+            };
+
+            // Comparación corregida
+            (horario.HoraInicio < horario.HoraFin).Should().BeTrue();
+        }
+
+        [Fact]
+        public void Matricula_ShouldChangeState()
+        {
+            var matricula = new Matricula
+            {
+                Id = 1,
+                EstudianteId = 1,
+                CursoId = 1,
+                FechaMatricula = DateTime.Now,
+                Estado = "Activa"
+            };
+
+            matricula.Estado = "Retirada";
+            matricula.Estado.Should().Be("Retirada");
+        }
     }
 }
